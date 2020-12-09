@@ -32,7 +32,7 @@ class Download:
             self.comic_info(url)
 
     def login(self):
-        url = 'ac.qq.com'
+        url = 'http://ac.qq.com'
         self.browser.get(url)
 
         self.wait.until(ec.element_to_be_clickable((By.XPATH, '//*[@id="sidebarComTabMe"]')))
