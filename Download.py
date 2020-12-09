@@ -2,6 +2,7 @@ import re
 import os
 import time
 import requests
+import threading
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
@@ -32,6 +33,9 @@ class Download:
             self.comic_info(url)
 
     def login(self):
+        if input('是否登陆（y/n）') != 'y':
+            return
+
         url = 'http://ac.qq.com'
         self.browser.get(url)
 
@@ -41,7 +45,7 @@ class Download:
         self.browser.switch_to.frame('iframe_qq')
         self.browser.switch_to.frame('ptlogin_iframe')
 
-        if input('选择登陆方式（0：快捷登陆（已登录QQ），1：账号密码登陆（需关闭网页登陆保护）默认为 0） ') != 1:
+        if input('选择登陆方式（0：快捷登陆（已登录QQ），1：账号密码登陆（需关闭网页登陆保护）默认为 0） ') != '1':
             # 点击登陆
             self.browser.find_element_by_xpath('//*[@id="qlogin_list"]/a[1]').click()
         else:
@@ -60,17 +64,16 @@ class Download:
     def loading(self):
         while True:
             try:
-                elements = self.browser.find_elements_by_css_selector(
-                    'img[src="//ac.gtimg.com/media/images/pixel.gif"]')
+                elements = self.browser.find_elements_by_css_selector('img[src="//ac.gtimg.com/media/images/pixel.gif"]')
 
                 if not elements:
                     break
 
                 for ele in elements:
                     self.browser.execute_script("arguments[0].scrollIntoView();", ele)
-                    time.sleep(0.1)
+                    time.sleep(0.2)
             except:
-                break
+                continue
 
     # 返回漫画名和总话数
     def comic_info(self, url):
@@ -110,7 +113,8 @@ class Download:
             try:
                 num.append(re.search('>(\\d+)/(\\d+)<', str(li))[1])
                 urls.append(re.search('src="(.*?)"', str(li))[1])
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
         path = comic_name + '/' + chapter_num + '.' + chapter_name
@@ -132,7 +136,18 @@ class Download:
 if __name__ == '__main__':
     url = input('请输入要下载的漫画的某一话的链接')
     D = Download(url)
+
+    D.login()
+
     all_info = AllChapter.ChaptersInfo(url)
 
+    ts = []
+
     for chapter_info in all_info:
-        D.getImg(chapter_info)
+        ts.append(threading.Thread(target=D.getImg, args=(chapter_info, )))
+
+    for t in ts:
+        t.start()
+        t.join()
+
+    D.browser.quit()
