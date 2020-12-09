@@ -28,6 +28,8 @@ def main():
             all_comic_url = F.AllUrls()
 
     D = Download.Download()
+    D.login()
+    
     for comic_url in all_comic_url:
         D.comic_info(comic_url)
 
