@@ -1,6 +1,7 @@
 import re
 import os
 import time
+import getpass
 import requests
 import threading
 
@@ -53,8 +54,8 @@ class Download:
             self.browser.find_element_by_xpath('//*[@id="switcher_plogin"]').click()
 
             username = input('请输入账号: ')
-            password = input('请输入密码: ')
-            # password = getpass.getpass('请输入密码: ') # pycharm 不可用
+            # password = input('请输入密码: ')
+            password = getpass.getpass('请输入密码: ') # pycharm 不可用
 
             self.browser.find_element_by_xpath('//*[@id="u"]').send_keys(username)
             self.browser.find_element_by_xpath('//*[@id="p"]').send_keys(password)
@@ -98,8 +99,16 @@ class Download:
         chapter_num = chapter_info[0]
         chapter_name = chapter_info[1].strip().replace(' ', '-')
         chapter_url = chapter_info[2]
-
-        self.browser.get(chapter_url)
+        
+        try:
+            self.browser.get(chapter_url)
+        except:
+            print(comic_name+' '+chapter_num+'.'+chapter_name+'爬取失败')
+            if input('') == 'y:
+                self.getImg(chapter_info)
+            else:
+                return
+            
         self.loading()
 
         source = self.browser.page_source
