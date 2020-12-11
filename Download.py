@@ -104,7 +104,7 @@ class Download:
             self.browser.get(chapter_url)
         except:
             print(comic_name+' '+chapter_num+'.'+chapter_name+'爬取失败')
-            if input('') == 'y:
+            if input('') == 'y':
                 self.getImg(chapter_info)
             else:
                 return
