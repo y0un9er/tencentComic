@@ -113,8 +113,8 @@ class Download:
             else:
                 print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败\n')
                 return
-            finally:
-                self.count = 0
+        finally:
+            self.count = 0
                 
         self.loading()
 
