@@ -24,6 +24,7 @@ class Download:
     wait = ''
     name = ''
     total = 0
+    count = 0
 
     # 初始化，调用 Browser 类创建浏览器，browser 参数为使用的浏览器，mode 表示是否使用无头模式
     def __init__(self, url=None):
@@ -96,8 +97,6 @@ class Download:
 
     # 爬取某一话的所有图片 chapter_info 为 [chapter_num, chapter_name, chapter_url]
     def getImg(self, chapter_info):
-        count = 0
-
         comic_name = self.name
         chapter_num = chapter_info[0]
         chapter_name = chapter_info[1].strip().replace(' ', '-')
@@ -109,12 +108,14 @@ class Download:
             print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败，正在重试……\n')
             count += 1
 
-            if count < 5:
+            if self.count < 5:
                 self.getImg(chapter_info)
             else:
                 print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败\n')
                 return
-
+            finally:
+                self.count = 0
+                
         self.loading()
 
         source = self.browser.page_source
