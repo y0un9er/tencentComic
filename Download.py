@@ -25,16 +25,16 @@ class Download:
     name = ''
     total = 0
 
-    # 初始化，调用 Browser 类创建浏览器，默认 Nowindow，使用无窗口浏览器，传入 Window 使用窗口
+    # 初始化，调用 Browser 类创建浏览器，browser 参数为使用的浏览器，mode 表示是否使用无头模式
     def __init__(self, url=None):
-        self.browser = Browser.Browser().browser
+        self.browser = Browser.Browser(browser='chrome', mode='Nowindow').browser
         self.wait = WebDriverWait(self.browser, 30)
 
         if url is not None:
             self.comic_info(url)
 
     def login(self):
-        if input('是否登陆（y/n）') != 'y':
+        if input('\n是否登陆（y/n） ') != 'y':
             return
 
         url = 'http://ac.qq.com'
@@ -46,16 +46,16 @@ class Download:
         self.browser.switch_to.frame('iframe_qq')
         self.browser.switch_to.frame('ptlogin_iframe')
 
-        if input('选择登陆方式（0：快捷登陆（已登录QQ），1：账号密码登陆（需关闭网页登陆保护）默认为 0） ') != '1':
+        if input('\n选择登陆方式（0：快捷登陆（已登录QQ），1：账号密码登陆（需关闭网页登陆保护）默认为 0） ') != '1':
             # 点击登陆
             self.browser.find_element_by_xpath('//*[@id="qlogin_list"]/a[1]').click()
         else:
             # 账号密码登陆
             self.browser.find_element_by_xpath('//*[@id="switcher_plogin"]').click()
 
-            username = input('请输入账号: ')
+            username = input('\n请输入账号: ')
             # password = input('请输入密码: ')
-            password = getpass.getpass('请输入密码: ') # pycharm 不可用
+            password = getpass.getpass('请输入密码: ')  # pycharm 不可用
 
             self.browser.find_element_by_xpath('//*[@id="u"]').send_keys(username)
             self.browser.find_element_by_xpath('//*[@id="p"]').send_keys(password)
@@ -65,7 +65,8 @@ class Download:
     def loading(self):
         while True:
             try:
-                elements = self.browser.find_elements_by_css_selector('img[src="//ac.gtimg.com/media/images/pixel.gif"]')
+                elements = self.browser.find_elements_by_css_selector(
+                    'img[src="//ac.gtimg.com/media/images/pixel.gif"]')
 
                 if not elements:
                     break
@@ -99,16 +100,13 @@ class Download:
         chapter_num = chapter_info[0]
         chapter_name = chapter_info[1].strip().replace(' ', '-')
         chapter_url = chapter_info[2]
-        
+
         try:
             self.browser.get(chapter_url)
         except:
-            print(comic_name+' '+chapter_num+'.'+chapter_name+'爬取失败')
-            if input('是否重新尝试（y/n） ') == 'y':
-                self.getImg(chapter_info)
-            else:
-                return
-            
+            print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败，正在重试……\n')
+            self.getImg(chapter_info)
+
         self.loading()
 
         source = self.browser.page_source
@@ -122,8 +120,7 @@ class Download:
             try:
                 num.append(re.search('>(\\d+)/(\\d+)<', str(li))[1])
                 urls.append(re.search('src="(.*?)"', str(li))[1])
-            except Exception as e:
-                print(e)
+            except:
                 continue
 
         path = comic_name + '/' + chapter_num + '.' + chapter_name
@@ -143,7 +140,7 @@ class Download:
 
 # 如果要下载某本已知漫画，直接运行此文件，否则使用 run.py
 if __name__ == '__main__':
-    url = input('请输入要下载的漫画的某一话的链接')
+    url = input('\n请输入要下载的漫画的某一话的链接： ')
     D = Download(url)
 
     D.login()
@@ -153,7 +150,7 @@ if __name__ == '__main__':
     ts = []
 
     for chapter_info in all_info:
-        ts.append(threading.Thread(target=D.getImg, args=(chapter_info, )))
+        ts.append(threading.Thread(target=D.getImg, args=(chapter_info,)))
 
     for t in ts:
         t.start()
