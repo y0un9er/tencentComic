@@ -106,7 +106,7 @@ class Download:
             self.browser.get(chapter_url)
         except:
             print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败，正在重试……\n')
-            count += 1
+            self.count += 1
 
             if self.count < 5:
                 self.getImg(chapter_info)
