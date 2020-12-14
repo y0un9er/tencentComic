@@ -96,6 +96,8 @@ class Download:
 
     # 爬取某一话的所有图片 chapter_info 为 [chapter_num, chapter_name, chapter_url]
     def getImg(self, chapter_info):
+        count = 0
+
         comic_name = self.name
         chapter_num = chapter_info[0]
         chapter_name = chapter_info[1].strip().replace(' ', '-')
@@ -105,7 +107,13 @@ class Download:
             self.browser.get(chapter_url)
         except:
             print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败，正在重试……\n')
-            self.getImg(chapter_info)
+            count += 1
+
+            if count < 5:
+                self.getImg(chapter_info)
+            else:
+                print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败\n')
+                return
 
         self.loading()
 
