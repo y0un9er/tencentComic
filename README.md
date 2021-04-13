@@ -1,3 +1,5 @@
+# 原博文地址
+https://blog.csdn.net/CSDNiamcoming/article/details/110926242	
 
 # chrome driver 下载地址
 注意本机使用的 chrome 的版本
@@ -64,7 +66,7 @@ http://chromedriver.storage.googleapis.com/index.html
 	本机 i5-8300H + 两根8G，CPU 利用率在 20% 多，内存 35% 左右，711话的火影忍者爬了 `半个小时` 左右，爬的链接，没下载图片
 	说明一下，火影阅点买的
 
-## 因为环境原因网络原因，很多测试过的代码也会出现各种各样的问题，一般使用一下方法排错
+## 因为环境原因网络原因，很多测试过的代码也会出现各种各样的问题，一般使用以下方法排错
 ```python
 self.browser.get_screenshot_as_file('1.png');
 
