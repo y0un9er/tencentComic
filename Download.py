@@ -1,103 +1,69 @@
-import re
+import json
 import os
-import time
-import getpass
-import requests
+import re
 import threading
+import time
 
+import requests
 from bs4 import BeautifulSoup
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as ec
 
-import Browser
-import AllChapter
-
-'''
-    Download类，用于下载爬取到的图片
-'''
+from Browser import Browser
+from Info import Info
 
 
 class Download:
-    browser = ''
-    wait = ''
-    name = ''
-    total = 0
-    count = 0
 
-    # 初始化，调用 Browser 类创建浏览器，browser 参数为使用的浏览器，mode 表示是否使用无头模式
-    def __init__(self, url=None):
-        self.browser = Browser.Browser(browser='chrome', mode='Nowindow').browser
-        self.wait = WebDriverWait(self.browser, 30)
+    def __init__(self, browser, mode='noPic'):
+        self.browser = browser
 
-        if url is not None:
-            self.comic_info(url)
+        self.comic_name = None
+        self.total = 0
+        self.count = 0
 
-    def login(self):
-        if input('\n是否登陆（y/n） ') != 'y':
-            return
-
-        url = 'http://ac.qq.com'
-        self.browser.get(url)
-
-        self.wait.until(ec.element_to_be_clickable((By.XPATH, '//*[@id="sidebarComTabMe"]')))
-        self.browser.find_element_by_xpath('//*[@id="sidebarComTabMe"]').click()
-
-        self.browser.switch_to.frame('iframe_qq')
-        self.browser.switch_to.frame('ptlogin_iframe')
-
-        if input('\n选择登陆方式（0：快捷登陆（已登录QQ），1：账号密码登陆（需关闭网页登陆保护）默认为 0） ') != '1':
-            # 点击登陆
-            self.browser.find_element_by_xpath('//*[@id="qlogin_list"]/a[1]').click()
+        if mode == 'noPic':
+            self.getImg = self.getNoPic
         else:
-            # 账号密码登陆
-            self.browser.find_element_by_xpath('//*[@id="switcher_plogin"]').click()
+            self.getImg = self.getPic
 
-            username = input('\n请输入账号: ')
-            # password = input('请输入密码: ')
-            password = getpass.getpass('请输入密码: ')  # pycharm 不可用
+    def down(self, info, getImg=None):
+        if getImg is None:
+            getImg = self.getImg
 
-            self.browser.find_element_by_xpath('//*[@id="u"]').send_keys(username)
-            self.browser.find_element_by_xpath('//*[@id="p"]').send_keys(password)
-            self.browser.find_element_by_xpath('//*[@id="p"]').send_keys(Keys.ENTER)
+        self.comic_name = list(info.keys())[0][0]
+        self.total = list(info.keys())[0][1]
+
+        if not os.path.exists('comic/'):
+            os.mkdir('comic')
+        if not os.path.exists('comic/' + self.comic_name):
+            os.mkdir('comic/' + self.comic_name)
+
+        ts = []
+        for chapter_info in list(info.values())[0]:
+            # getImg(chapter_info)
+            ts.append(threading.Thread(target=getImg, args=(chapter_info,)))
+
+        for t in ts:
+            t.start()
+            t.join()
 
     # 使用循环控制浏览器滚动至所有 gif，使之加载为正常的漫画图片
     def loading(self):
         while True:
             try:
-                elements = self.browser.find_elements_by_css_selector(
-                    'img[src="//ac.gtimg.com/media/images/pixel.gif"]')
+                eles = self.browser.find_elements_by_css_selector('img[src="//ac.gtimg.com/media/images/pixel.gif"]')
 
-                if not elements:
+                if not eles:
                     break
 
-                for ele in elements:
+                for ele in eles:
                     self.browser.execute_script("arguments[0].scrollIntoView();", ele)
                     time.sleep(0.2)
             except:
                 continue
 
-    # 返回漫画名和总话数
-    def comic_info(self, url):
-        response = requests.get(url)
-        soup = BeautifulSoup(response.content, 'lxml')
-
-        total = soup.select('#catalogueContain > span')
-        total = re.search('\\d+', str(total))[0]
-
-        name = soup.select('#chapter')
-        name = re.search('>(\\S+)<', str(name))[1]
-
-        if not os.path.exists(name):
-            os.mkdir(name)
-
-        self.name = name
-        self.total = int(total)
-
     # 爬取某一话的所有图片 chapter_info 为 [chapter_num, chapter_name, chapter_url]
-    def getImg(self, chapter_info):
-        comic_name = self.name
+    def getPic(self, chapter_info):
+        comic_name = self.comic_name
         chapter_num = chapter_info[0]
         chapter_name = chapter_info[1].strip().replace(' ', '-')
         chapter_url = chapter_info[2]
@@ -105,17 +71,17 @@ class Download:
         try:
             self.browser.get(chapter_url)
         except:
-            print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败，正在重试……\n')
             self.count += 1
+            print('\n{} 第{}话 {} 爬取失败，正在尝试第{}次重试……\n'.format(comic_name, chapter_num, chapter_name, self.count))
 
             if self.count < 5:
                 self.getImg(chapter_info)
             else:
-                print('\n' + comic_name + ' ' + chapter_num + '.' + chapter_name + '爬取失败\n')
+                print('\n{} 第{}话 {} 爬取失败……\n'.format(comic_name, chapter_num, chapter_name))
                 return
         finally:
             self.count = 0
-                
+
         self.loading()
 
         source = self.browser.page_source
@@ -132,12 +98,12 @@ class Download:
             except:
                 continue
 
-        path = comic_name + '/' + chapter_num + '.' + chapter_name
+        path = 'comic/' + comic_name + '/' + chapter_num + '.' + chapter_name
         if not os.path.exists(path):
             os.mkdir(path)
 
         for i in range(len(urls)):
-            print('\r当前{}. {} ： {}/{}'.format(chapter_num, chapter_name, i + 1, len(urls)), end='')
+            print('当前{}. {} ： {}/{}'.format(chapter_num, chapter_name, i + 1, len(urls)))
             response = requests.get(urls[i])
             image = response.content
 
@@ -146,23 +112,67 @@ class Download:
             with open(path_, 'wb') as f:
                 f.write(image)
 
+    def getNoPic(self, chapter_info):
+        comic_name = self.comic_name
+        total = self.total
+        chapter_num = chapter_info[0]
+        chapter_name = chapter_info[1].strip().replace(' ', '-')
+        chapter_url = chapter_info[2]
 
-# 如果要下载某本已知漫画，直接运行此文件，否则使用 run.py
+        try:
+            self.browser.get(chapter_url)
+        except:
+            self.count += 1
+            print('\n{} 第{}话 {} 爬取失败，正在尝试第{}次重试……\n'.format(comic_name, chapter_num, chapter_name, self.count))
+
+            if self.count < 5:
+                self.getImg(chapter_info)
+            else:
+                print('\n{} 第{}话 {} 爬取失败……\n'.format(comic_name, chapter_num, chapter_name))
+                return
+        finally:
+            self.count = 0
+
+        self.loading()
+
+        source = self.browser.page_source
+        soup = BeautifulSoup(source, 'lxml')
+
+        lis = soup.select('#comicContain > li')
+
+        dic1 = {}
+        for li in lis:
+            try:
+                num = re.search('>(\\d+)/(\\d+)<', str(li))[1]
+                url = re.search('src="(.*?)"', str(li))[1]
+                dic1[num] = url
+            except:
+                continue
+
+        dic2 = {str((comic_name, total)): {chapter_num + '.' + chapter_name: dic1}}
+
+        if not os.path.exists('comic/' + comic_name + '/' + comic_name + '.json'):
+            with open('comic/' + comic_name + '/' + comic_name + '.json', 'w') as f:
+                json.dump(dic2, f)
+        else:
+            with open('comic/' + comic_name + '/' + comic_name + '.json', 'r+') as f:
+                try:
+                    dic2 = json.load(f)
+                    if chapter_num + '.' + chapter_name in dic2[str((comic_name, total))].keys():
+                        if len(dic1) > len(dic2[str((comic_name, total))][chapter_num + '.' + chapter_name]):
+                            dic2[str((comic_name, total))][chapter_num + '.' + chapter_name] = dic1
+                    else:
+                        dic2[str((comic_name, total))][chapter_num + '.' + chapter_name] = dic1
+                except:
+                    pass
+                finally:
+                    f.seek(0)
+                    f.truncate()
+                json.dump(dic2, f)
+
+
 if __name__ == '__main__':
-    url = input('\n请输入要下载的漫画的某一话的链接： ')
-    D = Download(url)
-
-    D.login()
-
-    all_info = AllChapter.ChaptersInfo(url)
-
-    ts = []
-
-    for chapter_info in all_info:
-        ts.append(threading.Thread(target=D.getImg, args=(chapter_info,)))
-
-    for t in ts:
-        t.start()
-        t.join()
-
-    D.browser.quit()
+    b = Browser('chrome', 'Nowindow').browser
+    D = Download(b, mode='Pic')
+    I = Info()
+    D.down(I.comic_info('https://ac.qq.com/ComicView/index/id/505432/cid/1'))
