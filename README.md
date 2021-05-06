@@ -5,8 +5,8 @@ https://blog.csdn.net/CSDNiamcoming/article/details/110926242
 注意本机使用的 chrome 的版本
 http://chromedriver.storage.googleapis.com/index.html
 
-# firefox driver 以提供
-使用 apt-get install firefox 即可使用
+# firefox driver 已提供
+使用 apt-get install firefox 安装火狐浏览器之后即可使用
 
 # usage:
             ***************************************************************************
@@ -68,9 +68,9 @@ http://chromedriver.storage.googleapis.com/index.html
 
 ## 因为环境原因网络原因，很多测试过的代码也会出现各种各样的问题，一般使用以下方法排错
 ```python
-self.browser.get_screenshot_as_file('1.png');
+self.browser.get_screenshot_as_file('1.png');	# 网页截图
 
-with open('1.html', 'w') as f:
+with open('1.html', 'w') as f:			# 保存网页源码
 	f.write(self.browser.page_source)
 ```
 		
