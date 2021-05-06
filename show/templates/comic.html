@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        #btn{border-radius:5px;with:50px;height：50px;position: fixed;}
+        .day{background-color:#FAFAD2}
+        .night{background-color:#333333}
+
+        .cart-concern-btm-fixed {
+        bottom: 0;
+        height: 50px;
+        left: 0;
+        position: fixed;
+        text-align: center;
+        width: 100%;
+        z-index: 10;
+        }
+        .four-column .concern-cart {
+        width: 100%;
+        }
+        .concern-cart {
+        background-color: rgba(0, 0, 0, 0.8);
+        }
+        .concern-cart a {
+        color: #d4d4d4;
+        font-size: 10px;
+        }
+        .concern-cart span {
+        display: block;
+        height: 50px;
+        color: white;
+        line-height: 50px;
+        text-align: right;
+        }
+    </style>
+    <script src='http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.10.2.min.js'></script>
+    <script>
+        window.onload=function(){
+        const btn=document.getElementById("btn");
+        btn.onclick=function(){
+           if(document.body.className=="day")
+               {btn.innerText="日间模式";
+                document.body.className="night";
+               }
+           else
+           {   btn.innerText="夜间模式";
+               document.body.className="day";
+               }
+        }
+        }
+    </script>
+    <script>
+        function get(imgEle, url){
+            $.ajax({
+                type: 'POST',
+                contentType: 'application/x-www-form-urlencoded',
+                url: '/getImg',
+                data: {
+                    'url':url
+                },
+                async: true,
+                success: function(data){
+                    // $("#content").attr('src',"data:image/jpeg;base64," + data);
+                    imgEle.setAttribute('src',"data:image/jpeg;base64," + data);
+                },
+                error: function(state, xhr){
+                    imgEle.setAttribute('alt',"加载失败");
+                }
+            });
+        }
+
+        $(function() {
+            var b = document.body
+            var num = b.childElementCount
+
+            var arr = new Array()
+            {% for url in imgs %}
+                arr.push("{{url}}")
+            {% endfor %}
+
+            for(var i=0;i<=num;i++){
+                var imgEle = document.querySelectorAll('body > p > img')[i]
+                var url = arr[i]
+                get(imgEle, url)
+            }
+
+            var scr=document.getElementsByTagName("script");
+            for(var i=0;i<scr.length;i++){
+                scr[i].parentNode.removeChild(scr[i]);
+            }
+
+        });
+    </script>
+</head>
+<body class="day">
+    <h1 align="center">{{ chapter_name }}</h1>
+
+    {% for i in imgs %}
+        <p align="center">
+            <img src="#" alt="加载中"/>
+        </p>
+    {% endfor %}
+
+    <div class="cart-concern-btm-fixed four-column" id="cart1" style="display: table;">
+        <div class="concern-cart">
+            <span>
+                {% if page > 1 %}
+                    <a href="./{{page-1}}">上一话</a>&nbsp;&nbsp;
+                {% endif %}
+                <a>返回首页</a>&nbsp;&nbsp;
+                <a>下一话</a>&nbsp;&nbsp;
+                <a id="btn">夜间模式</a>&nbsp;&nbsp;
+            </span>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>sseij</title>
+</head>
+<body>
+    {% for comic in allComic %}
+
+            <a href="/comic/{{comic}}/1"><img src="/cover/{{comic}}" alt="{{comic}}" width="15%"/></a>
+
+    {% endfor %}
+</body>
+</html>

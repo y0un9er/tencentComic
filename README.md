@@ -73,4 +73,11 @@ self.browser.get_screenshot_as_file('1.png');	# 网页截图
 with open('1.html', 'w') as f:			# 保存网页源码
 	f.write(self.browser.page_source)
 ```
-		
+
+# 新增 json 格式的漫画阅读器
+
+	由于有防盗链，直接放到 img 标签中会加载出错，所以使用 flask 写了个简单的阅读器
+	
+	在 show 目录下运行 show.py ，访问 127.0.0.1:5000 即可开始愉快的看漫画了
+
+	同一网络中，使用 本机ip:5000 可以在其他设备查看
