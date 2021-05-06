@@ -26,13 +26,14 @@
         .concern-cart a {
         color: #d4d4d4;
         font-size: 10px;
+        text-decoration:none;
         }
         .concern-cart span {
         display: block;
         height: 50px;
         color: white;
         line-height: 50px;
-        text-align: right;
+        text-align: left;
         }
     </style>
     <script src='http://upcdn.b0.upaiyun.com/libs/jquery/jquery-1.10.2.min.js'></script>
@@ -64,6 +65,9 @@
                 success: function(data){
                     // $("#content").attr('src',"data:image/jpeg;base64," + data);
                     imgEle.setAttribute('src',"data:image/jpeg;base64," + data);
+					if(window.innerHeight > window.innerWidth){
+						imgEle.setAttribute('width',"100%");
+					}
                 },
                 error: function(state, xhr){
                     imgEle.setAttribute('alt',"加载失败");
@@ -105,13 +109,15 @@
 
     <div class="cart-concern-btm-fixed four-column" id="cart1" style="display: table;">
         <div class="concern-cart">
-            <span>
+            <span>&nbsp;&nbsp;
                 {% if page > 1 %}
                     <a href="./{{page-1}}">上一话</a>&nbsp;&nbsp;
                 {% endif %}
-                <a>返回首页</a>&nbsp;&nbsp;
-                <a>下一话</a>&nbsp;&nbsp;
-                <a id="btn">夜间模式</a>&nbsp;&nbsp;
+                <a href="/">返回首页</a>&nbsp;&nbsp;
+                {% if page < maxPage %}
+                    <a href="./{{page+1}}">下一话</a>&nbsp;&nbsp;
+                {% endif %}
+                <a id="btn" href="#">夜间模式</a>&nbsp;&nbsp;
             </span>
         </div>
     </div>

@@ -21,13 +21,17 @@ def index():
 def comic(title, page=1):
     with open(f'../comic/{title}/{title}.json') as f:
         json_data = json.load(f)
+        maxPage = len(list(list(json_data.values())[0].items()))
+
+        if page > maxPage:
+            return f"本漫画只有{maxPage}话哦"
 
         chapter = list(list(json_data.values())[0].items())[page - 1]
         chapter_name = chapter[0]
 
         imgs = chapter[1].values()
 
-        return render_template('comic.html', title=title, chapter_name=chapter_name, imgs=imgs, page=page)
+        return render_template('comic.html', title=title, chapter_name=chapter_name, imgs=imgs, page=page, maxPage=maxPage)
 
 
 @app.route('/getImg', methods=['POST'])
